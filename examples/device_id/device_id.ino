@@ -1,3 +1,12 @@
+/** @file veml3328.ino 
+2 *
+3 * @brief Code example for VEML3328 UNIT Module Light Sensor
+4 *
+5 * @author Jonathan Mejorado Lopez
+6 *
+7 * @bug No known bugs.
+8 */
+
 #include <veml3328.h>
 #include <Wire.h>
 #define SDA_PIN 6
@@ -5,7 +14,7 @@
 
 
 
-
+//Predefined values  f the sensor 
 sens_config_t cfg = {
     .sd1 = false, 
     .sd_als_only = false , 
@@ -16,33 +25,22 @@ sens_config_t cfg = {
     .af = false , 
     .trigger = false, 
     .sd0 = false };
+
+
+
 void setup() {
     Serial.begin(115200);
     Wire.begin(SDA_PIN,SCL_PIN);
     if (Veml3328.begin(&Wire)) {
         Serial.println("Error: could not start VEML3328 library");
     }
-uint16_t VEMLClass::config(sens_config_t sens_config) { 
-    uint16_t configReg = ((uint16_t)sens_config.sd0   << 0)  | 
-                         ((uint16_t) 0b0 << 1   )  | 
-                         ((uint16_t)sens_config.trigger  << 2)  | 
-                         ((uint16_t)sens_config.af << 3 )  | 
-                         ((uint16_t)sens_config.integration_time << 4)  |
-                         ((uint16_t) 0b000 << 7)  | // reserved bits
-                         ((uint16_t)sens_config.sensitivity   << 6)  | 
-                         ((uint16_t)sens_config.gain << 10)  | 
-                         ((uint16_t)sens_config.dg << 12)  | 
-                         ((uint16_t)sens_config.sd_als_only << 14)  | 
-                         ((uint16_t)sens_config.sd1 << 15);
-
+    Serial.printf("Device ID: 0x%x\r\n", Veml3328.deviceID());
     uint16_t config = Veml3328.config(cfg) ;
 
-    Serial.print("0x");
-    Serial.println(config,HEX);
 }
 
 void loop() {
-    //Serial.printf("Device ID: %x\r\n", Veml3328.deviceID());
+    
     Serial.printf("Red: %u\r\n", Veml3328.getRed());
     Serial.printf("Green: %u\r\n", Veml3328.getGreen());
     Serial.printf("Blue: %u\r\n", Veml3328.getBlue());
