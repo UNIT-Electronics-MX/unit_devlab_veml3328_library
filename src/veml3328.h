@@ -20,6 +20,19 @@ typedef enum {
     time_400 = 0x03
 } int_time_t;
 
+  typedef struct{
+    bool sd1;
+    bool sd_als_only;
+    DG_t dg;
+    gain_t gain;
+    bool sensitivity;
+    int_time_t integration_time;
+    bool af;
+    bool trigger;
+    bool sd0;
+
+  } sens_config_t;
+
 class VEMLClass {
 
   public:
@@ -40,19 +53,20 @@ class VEMLClass {
      * @return 0 if successful, 1 if error occurred.
      */
     uint8_t begin(const uint8_t address,
-                  TwoWire *wire = &Wire,
-                  const uint8_t pin_swap = 2);
+                  TwoWire *wire = &Wire);
 
     /**
      * @see #begin(address, wire, pin_swap)
      */
-    uint8_t begin(TwoWire *wire = &Wire, const uint8_t pin_swap = 2);
+    uint8_t begin(TwoWire *wire = &Wire);
 
     /**
      * @return The sensor's device ID.
      */
     uint16_t deviceID();
 
+    
+    uint16_t config(sens_config_t sens_config);
     /**
      * @return Red channel value.
      */

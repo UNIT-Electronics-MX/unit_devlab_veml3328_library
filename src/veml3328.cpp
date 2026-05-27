@@ -2,15 +2,15 @@
 
 #define DEFAULT_ADDRESS (0x10)
 
-#define CONFIG_SHUTDOWN_bm          (0b1000000000000001)
-#define CONFIG_SHUTDOWN_RB_bm       (0b0100000000000000)
-#define CONFIG_DIFFERENTIAL_GAIN_bm (0b0011000000000000)
+#define CONFIG_SHUTDOWN_bm          (1 << 15)
+#define CONFIG_SHUTDOWN_RB_bm       (1 << 14)
+#define CONFIG_DIFFERENTIAL_GAIN_bm (1 << 12)
 #define CONFIG_DIFFERENTIAL_GAIN_bp (12)
-#define CONFIG_GAIN_bm              (0b0000110000000000)
+#define CONFIG_GAIN_bm              (1 << 10)
 #define CONFIG_GAIN_bp              (10)
-#define CONFIG_SENSITIVITY_bm       (0b0000000001000000)
+#define CONFIG_SENSITIVITY_bm       (1 << 6)
 #define CONFIG_SENSITIVITY_bp       (6)
-#define CONFIG_INTEGRATION_TIME_bm  (0b0000000000110000)
+#define CONFIG_INTEGRATION_TIME_bm  (1 << 4)
 #define CONFIG_INTEGRATION_TIME_bp  (4)
 
 #define CONFIG_REGISTER_ADDRESS    (0x00)
@@ -24,19 +24,17 @@
 VEMLClass Veml3328 = VEMLClass::instance();
 
 uint8_t VEMLClass::begin(const uint8_t address,
-                         TwoWire *wire_,
-                         const uint8_t pin_swap) {
+                         TwoWire *wire_) {
     this->wire = wire_;
     this->device_address = address;
 
-    this->wire->swap(pin_swap);
     this->wire->begin();
 
     return wake();
 }
 
-uint8_t VEMLClass::begin(TwoWire *wire, const uint8_t pin_swap) {
-    return begin(DEFAULT_ADDRESS, wire, pin_swap);
+uint8_t VEMLClass::begin(TwoWire *wire) {
+    return begin(DEFAULT_ADDRESS, wire);
 }
 
 uint16_t VEMLClass::deviceID() {
@@ -49,6 +47,43 @@ uint16_t VEMLClass::getBlue() { return read(BLUE_REGISTER_ADDRESS); }
 uint16_t VEMLClass::getIR() { return read(IR_REGISTER_ADDRESS); }
 uint16_t VEMLClass::getClear() { return read(CLEAR_REGISTER_ADDRESS); }
 
+uint16_t VEMLClass::config(sens_config_t sens_config) { 
+    uint16_t configReg = ((uint16_t)sens_config.sd0   << 0)  | 
+                         ((uint16_t) 0b0 << 1   )  | 
+                         ((uint16_t)sens_config.trigger  << 2)  | 
+                         ((uint16_t)sens_config.af << 3 )  | 
+                         ((uint16_t)sens_config.integration_time << 4)  |
+                         ((uint16_t) 0b000 << 7)  | // reserved bits
+                         ((uint16_t)sens_config.sensitivity   << 6)  | 
+                         ((uint16_t)sens_config.gain << 10)  | 
+                         ((uint16_t)sens_config.dg << 12)  | 
+                         ((uint16_t)sens_config.sd_als_only << 14)  | 
+                         ((uint16_t)sens_config.sd1 << 15);
+
+    Serial.print("sd0 = ");
+    Serial.print(sens_config.sd0);
+    Serial.print(", trigger = ");
+    Serial.print(sens_config.trigger);
+    Serial.print(", af = ");
+    Serial.print(sens_config.af);
+    Serial.print(", integration_time = ");
+    Serial.print(sens_config.integration_time);
+    Serial.print(", sensitivity = ");
+    Serial.print(sens_config.sensitivity);
+    Serial.print(", gain = ");
+    Serial.print(sens_config.gain);
+    Serial.print(", dg = ");
+    Serial.print(sens_config.dg);
+    Serial.print(", sd_als_only = ");
+    Serial.print(sens_config.sd_als_only);
+    Serial.print(", sd1 = ");
+    Serial.println(sens_config.sd1);
+    
+    Serial.print("configReg = 0x");
+    Serial.println(configReg, HEX);
+    return writeConfirm(CONFIG_REGISTER_ADDRESS, 0xFFFF, configReg, 0);
+    
+}
 uint8_t VEMLClass::wake() {
     return writeConfirm(CONFIG_REGISTER_ADDRESS, CONFIG_SHUTDOWN_bm, 0x0);
 }
