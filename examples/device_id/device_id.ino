@@ -1,16 +1,17 @@
-#include <veml3328.h>
+#include <DevLab_VEML3328.h>
 
-#define SerialDebug Serial3
+#define SerialDebug Serial
 
 void setup() {
     SerialDebug.begin(115200);
 
-    if (Veml3328.begin()) {
-        SerialDebug.println("Error: could not start VEML3328 library");
+    if (DevLab_VEML3328.begin()) {
+        SerialDebug.println("Error: could not start DevLab_VEML3328 library");
     }
 }
 
 void loop() {
-    SerialDebug.printf("Device ID: %x\r\n", Veml3328.deviceID());
+    SerialDebug.print("Device ID: 0x");
+    SerialDebug.println(DevLab_VEML3328.deviceID(), HEX);
     delay(2000);
 }

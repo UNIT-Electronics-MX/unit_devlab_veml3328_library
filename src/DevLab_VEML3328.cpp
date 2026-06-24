@@ -1,4 +1,4 @@
-#include "veml3328.h"
+#include "DevLab_VEML3328.h"
 
 #define DEFAULT_ADDRESS (0x10)
 
@@ -21,78 +21,96 @@
 #define IR_REGISTER_ADDRESS        (0x08)
 #define DEVICE_ID_REGISTER_ADDRESS (0x0C)
 
-VEMLClass Veml3328 = VEMLClass::instance();
+namespace {
+template <typename WireT>
+auto applyWirePinSwap(WireT *wire, const uint8_t pin_swap)
+    -> decltype(wire->swap(pin_swap), void()) {
+    wire->swap(pin_swap);
+}
 
-uint8_t VEMLClass::begin(const uint8_t address,
-                         TwoWire *wire_,
-                         const uint8_t pin_swap) {
+void applyWirePinSwap(...) {}
+} // namespace
+
+DevLab_VEML3328Class &DevLab_VEML3328 =
+    DevLab_VEML3328Class::instance();
+DevLab_VEML3328Class &Veml3328 = DevLab_VEML3328;
+
+uint8_t DevLab_VEML3328Class::begin(const uint8_t address,
+                                    TwoWire *wire_,
+                                    const uint8_t pin_swap) {
     this->wire = wire_;
     this->device_address = address;
 
-    this->wire->swap(pin_swap);
+    applyWirePinSwap(this->wire, pin_swap);
     this->wire->begin();
 
     return wake();
 }
 
-uint8_t VEMLClass::begin(TwoWire *wire, const uint8_t pin_swap) {
+uint8_t DevLab_VEML3328Class::begin(TwoWire *wire, const uint8_t pin_swap) {
     return begin(DEFAULT_ADDRESS, wire, pin_swap);
 }
 
-uint16_t VEMLClass::deviceID() {
+uint16_t DevLab_VEML3328Class::deviceID() {
     return (read(DEVICE_ID_REGISTER_ADDRESS) & 0xFF);
 }
 
-uint16_t VEMLClass::getRed() { return read(RED_REGISTER_ADDRESS); }
-uint16_t VEMLClass::getGreen() { return read(GREEN_REGISTER_ADDRESS); }
-uint16_t VEMLClass::getBlue() { return read(BLUE_REGISTER_ADDRESS); }
-uint16_t VEMLClass::getIR() { return read(IR_REGISTER_ADDRESS); }
-uint16_t VEMLClass::getClear() { return read(CLEAR_REGISTER_ADDRESS); }
+uint16_t DevLab_VEML3328Class::getRed() { return read(RED_REGISTER_ADDRESS); }
+uint16_t DevLab_VEML3328Class::getGreen() {
+    return read(GREEN_REGISTER_ADDRESS);
+}
+uint16_t DevLab_VEML3328Class::getBlue() {
+    return read(BLUE_REGISTER_ADDRESS);
+}
+uint16_t DevLab_VEML3328Class::getIR() { return read(IR_REGISTER_ADDRESS); }
+uint16_t DevLab_VEML3328Class::getClear() {
+    return read(CLEAR_REGISTER_ADDRESS);
+}
 
-uint8_t VEMLClass::wake() {
+uint8_t DevLab_VEML3328Class::wake() {
     return writeConfirm(CONFIG_REGISTER_ADDRESS, CONFIG_SHUTDOWN_bm, 0x0);
 }
 
-void VEMLClass::shutdown() {
+void DevLab_VEML3328Class::shutdown() {
     write(CONFIG_REGISTER_ADDRESS, CONFIG_SHUTDOWN_bm, CONFIG_SHUTDOWN_bm);
 }
 
-uint8_t VEMLClass::rbShutdown() {
+uint8_t DevLab_VEML3328Class::rbShutdown() {
     return writeConfirm(
         CONFIG_REGISTER_ADDRESS, CONFIG_SHUTDOWN_RB_bm, CONFIG_SHUTDOWN_RB_bm);
 }
 
-uint8_t VEMLClass::rbWakeup() {
+uint8_t DevLab_VEML3328Class::rbWakeup() {
     return writeConfirm(CONFIG_REGISTER_ADDRESS, CONFIG_SHUTDOWN_RB_bm, 0x0);
 }
 
-uint8_t VEMLClass::setDG(const DG_t differential_gain) {
+uint8_t DevLab_VEML3328Class::setDG(const DG_t differential_gain) {
     return writeConfirm(CONFIG_REGISTER_ADDRESS,
                         CONFIG_DIFFERENTIAL_GAIN_bm,
                         differential_gain,
                         CONFIG_DIFFERENTIAL_GAIN_bp);
 }
 
-uint8_t VEMLClass::setGain(const gain_t gain) {
+uint8_t DevLab_VEML3328Class::setGain(const gain_t gain) {
     return writeConfirm(
         CONFIG_REGISTER_ADDRESS, CONFIG_GAIN_bm, gain, CONFIG_GAIN_bp);
 }
 
-uint8_t VEMLClass::setSensitivity(const bool sensitivity) {
+uint8_t DevLab_VEML3328Class::setSensitivity(const bool sensitivity) {
     return writeConfirm(CONFIG_REGISTER_ADDRESS,
                         CONFIG_SENSITIVITY_bm,
                         sensitivity ? 1 : 0,
                         CONFIG_SENSITIVITY_bp);
 }
 
-uint8_t VEMLClass::setIntTime(const int_time_t integration_time) {
+uint8_t DevLab_VEML3328Class::setIntTime(const int_time_t integration_time) {
     return writeConfirm(CONFIG_REGISTER_ADDRESS,
                         CONFIG_INTEGRATION_TIME_bm,
                         integration_time,
                         CONFIG_INTEGRATION_TIME_bp);
 }
 
-uint16_t VEMLClass::read(const uint8_t register_address) {
+uint16_t DevLab_VEML3328Class::read(const uint8_t register_address) {
 
     if (wire == nullptr) {
         return 0;
@@ -103,7 +121,7 @@ uint16_t VEMLClass::read(const uint8_t register_address) {
     wire->beginTransmission(device_address);
     wire->write(register_address);
     wire->endTransmission(false);
-    wire->requestFrom(device_address, 2);
+    wire->requestFrom(device_address, (uint8_t)2);
 
     for (uint8_t i = 0; i < 2; i++) {
         // Wait some for the result
@@ -122,10 +140,10 @@ uint16_t VEMLClass::read(const uint8_t register_address) {
     return (((uint16_t)data[1]) << 8) | data[0];
 }
 
-void VEMLClass::write(const uint8_t register_address,
-                      const uint16_t mask,
-                      const uint16_t data,
-                      const uint8_t shift) {
+void DevLab_VEML3328Class::write(const uint8_t register_address,
+                                 const uint16_t mask,
+                                 const uint16_t data,
+                                 const uint8_t shift) {
 
     if (wire == nullptr) {
         return;
@@ -143,10 +161,10 @@ void VEMLClass::write(const uint8_t register_address,
     wire->endTransmission(true);
 }
 
-uint8_t VEMLClass::writeConfirm(const uint8_t register_address,
-                                const uint16_t mask,
-                                const uint16_t data,
-                                const uint8_t shift) {
+uint8_t DevLab_VEML3328Class::writeConfirm(const uint8_t register_address,
+                                           const uint16_t mask,
+                                           const uint16_t data,
+                                           const uint8_t shift) {
 
     write(register_address, mask, data, shift);
 

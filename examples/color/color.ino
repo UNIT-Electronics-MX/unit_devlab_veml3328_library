@@ -1,23 +1,29 @@
-#include <veml3328.h>
+#include <DevLab_VEML3328.h>
 
-#define SerialDebug Serial3
+#define SerialDebug Serial
 
 void setup() {
     SerialDebug.begin(115200);
 
-    if (Veml3328.begin()) {
-        SerialDebug.println("Error: could not start VEML3328 library");
+    if (DevLab_VEML3328.begin()) {
+        SerialDebug.println("Error: could not start DevLab_VEML3328 library");
     }
 }
 
 void loop() {
 
     SerialDebug.println();
-    SerialDebug.printf("Red: %u\r\n", Veml3328.getRed());
-    SerialDebug.printf("Green: %u\r\n", Veml3328.getGreen());
-    SerialDebug.printf("Blue: %u\r\n", Veml3328.getBlue());
-    SerialDebug.printf("IR: %u\r\n", Veml3328.getIR());
-    SerialDebug.printf("Clear: %u\r\n\r\n", Veml3328.getClear());
+    SerialDebug.print("Red: ");
+    SerialDebug.println(DevLab_VEML3328.getRed());
+    SerialDebug.print("Green: ");
+    SerialDebug.println(DevLab_VEML3328.getGreen());
+    SerialDebug.print("Blue: ");
+    SerialDebug.println(DevLab_VEML3328.getBlue());
+    SerialDebug.print("IR: ");
+    SerialDebug.println(DevLab_VEML3328.getIR());
+    SerialDebug.print("Clear: ");
+    SerialDebug.println(DevLab_VEML3328.getClear());
+    SerialDebug.println();
 
     delay(2000);
 }

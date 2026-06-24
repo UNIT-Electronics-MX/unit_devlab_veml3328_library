@@ -1,3 +1,11 @@
+# 1.2.0
+
+## Changes
+
+* Renamed the public Arduino library usage to DevLab_VEML3328.
+* Added DevLab_VEML3328.h and DevLab_VEML3328 object as the preferred API.
+* Kept veml3328.h and Veml3328 as compatibility aliases.
+
 # 1.1.2
 
 ## Bugfixes
@@ -23,4 +31,3 @@
 # 1.0.0
 
 Initial Release
-
